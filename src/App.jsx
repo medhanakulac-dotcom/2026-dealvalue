@@ -21,14 +21,16 @@ const DEAL_VALUE_TIERS = {
     { max: Infinity, score: 5 },
   ],
   B: [
-    { max: 1000, score: 1 },
-    { max: 4999, score: 3 },
-    { max: Infinity, score: 5 },
+    { max: 900, score: 0 },
+    { max: 3000, score: 1 },
+    { max: 5000, score: 2 },
+    { max: Infinity, score: 3 },
   ],
   C: [
-    { max: 1000, score: 1 },
-    { max: 4999, score: 3 },
-    { max: Infinity, score: 5 },
+    { max: 900, score: 0 },
+    { max: 3000, score: 1 },
+    { max: 5000, score: 2 },
+    { max: Infinity, score: 3 },
   ],
 };
 
@@ -568,7 +570,7 @@ export default function App() {
       const g = safe(gmv);
       const r = Math.min(safe(revenue), g);
       return {
-        varLabel: "Revenue Share",
+        varLabel: "Percentage Commission",
         varLine: waiveVariable ? "WAIVED" : `(${fmt(g)} − ${fmt(r)}) × ${revShare}%`,
         varResult: calc.variable,
         varWaived: waiveVariable,
@@ -721,7 +723,7 @@ export default function App() {
                   onChange={setModel}
                   options={[
                     { value: "ticket", label: "Per Ticket (0.3 USD)" },
-                    { value: "gmv", label: "GMV Revenue Share" },
+                    { value: "gmv", label: "Percentage Commission" },
                   ]}
                 />
                 <Select
@@ -740,6 +742,7 @@ export default function App() {
                     model === "ticket" ? "1fr" : "1fr 1fr 1fr",
                   gap: 16,
                   marginBottom: 18,
+                  alignItems: "end",
                 }}
               >
                 {model === "ticket" ? (
@@ -927,7 +930,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Variable Fee row (Convenience Fee or Revenue Share) */}
+                  {/* Variable Fee row (Convenience Fee or Percentage Commission) */}
                   <div style={{
                     display: "grid",
                     gridTemplateColumns: customPricing ? "1fr auto" : "1fr auto",
@@ -951,7 +954,7 @@ export default function App() {
                           />
                         ) : (
                           <Input
-                            label="Revenue Share"
+                            label="Percentage Commission"
                             value={revShareInput}
                             onChange={setRevShareInput}
                             suffix="%"
@@ -960,7 +963,7 @@ export default function App() {
                       ) : (
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
-                            {model === "ticket" ? "Convenience Fee" : "Revenue Share"}
+                            {model === "ticket" ? "Convenience Fee" : "Percentage Commission"}
                           </div>
                           <div style={{ fontSize: 16, fontWeight: 700, color: waiveVariable ? "#e11d48" : "#3f3f46", textDecoration: waiveVariable ? "line-through" : "none" }}>
                             {model === "ticket" ? `${DEFAULTS.ticketFee} USD /ticket` : `${DEFAULTS.revenueShare}%`}
@@ -980,7 +983,7 @@ export default function App() {
                     Waived: {[
                       waiveImpl && "Implementation Fee",
                       waiveMonths > 0 && (waiveMonths >= 12 ? "Monthly Fee (all 12 mo)" : `Monthly Fee (${waiveMonths} mo)`),
-                      waiveVariable && (model === "ticket" ? "Convenience Fee" : "Revenue Share")
+                      waiveVariable && (model === "ticket" ? "Convenience Fee" : "Percentage Commission")
                     ].filter(Boolean).join(", ")}
                   </div>
                 )}
@@ -1315,7 +1318,7 @@ export default function App() {
                 }}
               >
                 {[
-                  { label: model === "ticket" ? "Convenience Fee" : "Revenue Share", value: calc.variable, waived: waiveVariable },
+                  { label: model === "ticket" ? "Convenience Fee" : "Percentage Commission", value: calc.variable, waived: waiveVariable },
                   { label: "Implementation Fee", value: calc.implFee, waived: waiveImpl },
                   {
                     label: waiveMonths > 0 && waiveMonths < 12
@@ -1432,9 +1435,9 @@ export default function App() {
               </div>
               {/* Model 2 */}
               <div style={{ background: "#fafaf9", borderRadius: 12, padding: "16px 18px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", marginBottom: 8 }}>Model 2: GMV Revenue Share</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", marginBottom: 8 }}>Model 2: Percentage Commission</div>
                 <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8 }}>
-                  <div><strong>Variable Value</strong> = (GMV − Revenue) × Revenue Share %</div>
+                  <div><strong>Variable Value</strong> = (GMV − Revenue) × Commission %</div>
                   <div><strong>Fixed Fees</strong> = Implementation Fee + (Monthly Fee × 12)</div>
                   <div style={{ marginTop: 6, padding: "6px 10px", background: "#fff7ed", borderRadius: 8, fontWeight: 600, color: "#ea580c" }}>
                     Deal Value = Variable Value + Fixed Fees
@@ -1465,10 +1468,10 @@ export default function App() {
             <div style={{ marginTop: 16, padding: "14px 18px", background: "#fef2f2", borderRadius: 12, border: "1px solid #fecdd3" }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#e11d48", marginBottom: 6 }}>Pricing Flexibility & Waivers</div>
               <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8 }}>
-                <div>• <strong>Custom Pricing</strong> — Toggle on to override any fee component (Implementation, Monthly, Convenience/Revenue Share)</div>
+                <div>• <strong>Custom Pricing</strong> — Toggle on to override any fee component (Implementation, Monthly, Convenience/Commission)</div>
                 <div>• <strong>Waive Implementation Fee</strong> — Fully waive the one-time implementation fee</div>
                 <div>• <strong>Waive Monthly Fee</strong> — Select 0–12 months to waive (partial or full waiver)</div>
-                <div>• <strong>Waive Convenience Fee / Revenue Share</strong> — Fully waive the variable fee component</div>
+                <div>• <strong>Waive Convenience Fee / Commission</strong> — Fully waive the variable fee component</div>
                 <div style={{ marginTop: 4, fontStyle: "italic", color: "#71717a" }}>Philippines: Monthly Fee is fixed at 30 USD/mo</div>
               </div>
             </div>
@@ -1571,9 +1574,10 @@ export default function App() {
                   </thead>
                   <tbody>
                     {[
-                      ["≤ 1,000", "1"],
-                      ["1,001 – 4,999", "3"],
-                      ["≥ 5,000", "5"],
+                      ["≤ 900", "0"],
+                      ["901 – 3,000", "1"],
+                      ["3,001 – 5,000", "2"],
+                      ["> 5,000", "3"],
                     ].map(([range, score], i) => (
                       <tr key={i} style={{ borderBottom: "1px solid #f4f4f5" }}>
                         <td style={{ padding: "8px" }}>{range}</td>
