@@ -616,7 +616,10 @@ export default function App() {
         @keyframes seatFloat { 0%{transform:translateY(0) scale(1)} 100%{transform:translateY(-18px) scale(1.04)} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         * { box-sizing: border-box; margin:0; padding:0; }
-        body { background: #f5f0eb; }
+        body { background: #f5f0eb; -webkit-text-size-adjust: 100%; }
+        @media (max-width: 860px) {
+          body { font-size: 14px; }
+        }
       `}</style>
 
       <Shapes />
@@ -1342,19 +1345,22 @@ export default function App() {
           </div>
         </div>
 
-        {/* ─── RESPONSIVE OVERRIDE (stack on narrow) ─────── */}
+        {/* ─── RESPONSIVE MOBILE STYLES ─────────────────── */}
         <style>{`
           @media (max-width: 860px) {
-            div[style*="gridTemplateColumns: 1fr 380px"] {
+            div[style*="gridTemplateColumns: 1fr 380px"],
+            div[style*="gridTemplateColumns: 1fr 1fr 1fr 1fr"],
+            div[style*="gridTemplateColumns: 1fr 1fr 1fr"],
+            div[style*="gridTemplateColumns: 1fr 1fr"] {
               grid-template-columns: 1fr !important;
             }
-            div[style*="gridTemplateColumns: 1fr 1fr 1fr"] {
+          }
+          @media (max-width: 480px) {
+            div[style*="gridTemplateColumns"] {
               grid-template-columns: 1fr !important;
             }
           }
         `}</style>
-
-        {/* ═══════════════════════════════════════════════════════════ */}
         {/* INSTRUCTIONS & LOGIC REFERENCE (Collapsible)              */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <div style={{ maxWidth: 1120, margin: "48px auto 0" }}>
@@ -1740,17 +1746,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* ─── RESPONSIVE OVERRIDE (stack on narrow) ─────── */}
-        <style>{`
-          @media (max-width: 860px) {
-            div[style*="gridTemplateColumns: 1fr 380px"] {
-              grid-template-columns: 1fr !important;
-            }
-            div[style*="gridTemplateColumns: 1fr 1fr 1fr"] {
-              grid-template-columns: 1fr !important;
-            }
-          }
-        `}</style>
       </div>
     </>
   );
