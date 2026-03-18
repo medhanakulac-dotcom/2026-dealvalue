@@ -675,6 +675,7 @@ export default function App() {
 
         {/* ─── MAIN GRID ──────────────────────────────────────── */}
         <div
+          className="grid-main"
           style={{
             maxWidth: 1120,
             margin: "0 auto",
@@ -713,6 +714,7 @@ export default function App() {
 
               {/* Model + Country row */}
               <div
+                className="grid-2col"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
@@ -739,6 +741,7 @@ export default function App() {
 
               {/* Inputs */}
               <div
+                className={model === "ticket" ? "" : "grid-3col"}
                 style={{
                   display: "grid",
                   gridTemplateColumns:
@@ -1039,6 +1042,7 @@ export default function App() {
               {/* Comparison */}
               {comparison && (
                 <div
+                  className="grid-2col"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
@@ -1091,7 +1095,7 @@ export default function App() {
             </Card>
 
             {/* SCORING CARDS */}
-            <div style={{ display: "grid", gridTemplateColumns: country !== "Thailand" ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 16 }}>
+            <div className="grid-scores" style={{ display: "grid", gridTemplateColumns: country !== "Thailand" ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 16 }}>
               <ScoreCard
                 label="Ticket Volume"
                 score={scores.ticketScore}
@@ -1348,15 +1352,27 @@ export default function App() {
         {/* ─── RESPONSIVE MOBILE STYLES ─────────────────── */}
         <style>{`
           @media (max-width: 860px) {
-            div[style*="gridTemplateColumns: 1fr 380px"],
-            div[style*="gridTemplateColumns: 1fr 1fr 1fr 1fr"],
-            div[style*="gridTemplateColumns: 1fr 1fr 1fr"],
-            div[style*="gridTemplateColumns: 1fr 1fr"] {
+            .grid-main {
               grid-template-columns: 1fr !important;
+            }
+            .grid-2col {
+              grid-template-columns: 1fr !important;
+            }
+            .grid-3col {
+              grid-template-columns: 1fr !important;
+            }
+            .grid-4col {
+              grid-template-columns: 1fr 1fr !important;
+            }
+            .grid-scores {
+              grid-template-columns: 1fr 1fr !important;
             }
           }
           @media (max-width: 480px) {
-            div[style*="gridTemplateColumns"] {
+            .grid-4col {
+              grid-template-columns: 1fr !important;
+            }
+            .grid-scores {
               grid-template-columns: 1fr !important;
             }
           }
@@ -1427,7 +1443,7 @@ export default function App() {
           <Card accent="linear-gradient(90deg, #f97316, #fb923c)">
             <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>1. Deal Value Calculation</div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Model 1 */}
               <div style={{ background: "#fafaf9", borderRadius: 12, padding: "16px 18px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", marginBottom: 8 }}>Model 1: Per Ticket</div>
@@ -1455,7 +1471,7 @@ export default function App() {
             {/* Fee Defaults */}
             <div style={{ marginTop: 16, padding: "14px 18px", background: "#f4f4f5", borderRadius: 12 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#71717a", marginBottom: 8 }}>Default Fee Structure</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              <div className="grid-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                 {[
                   { label: "Implementation Fee", value: "150 USD", note: "One-time" },
                   { label: "Monthly Fee", value: "60 USD/mo", note: "× 12 months = 720 USD" },
@@ -1486,7 +1502,7 @@ export default function App() {
           {/* ─── SCORING: TICKET VOLUME ─────────────────────── */}
           <Card accent="#a855f7">
             <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>2. Online Ticket Volume Score</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Group A */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#a855f7", marginBottom: 10 }}>Group A — Thailand, Indonesia, Vietnam, Cambodia</div>
@@ -1541,7 +1557,7 @@ export default function App() {
           {/* ─── SCORING: DEAL VALUE ────────────────────────── */}
           <Card accent="#14b8a6">
             <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>3. Deal Value Score</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Group A */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#14b8a6", marginBottom: 10 }}>Group A — Thailand, Indonesia, Vietnam, Cambodia</div>
@@ -1597,7 +1613,7 @@ export default function App() {
           </Card>
 
           {/* ─── SCORING: OPERATOR TYPE & BONUS ─────────────── */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             <Card accent="#f97316">
               <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>4. Operator Type Score</div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -1648,7 +1664,7 @@ export default function App() {
             </div>
 
             {/* Segment thresholds */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 16 }}>
+            <div className="grid-4col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 16 }}>
               {[
                 { segment: "High", rule: "≥ 7 points", color: "#16a34a", bg: "#dcfce7" },
                 { segment: "Mid-High", rule: "Medium + Deal > 5K", color: "#0d9488", bg: "#ccfbf1" },
@@ -1663,7 +1679,7 @@ export default function App() {
             </div>
 
             {/* Overrides */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+            <div className="grid-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
               <div style={{ padding: "14px 18px", background: "#f0fdf4", borderRadius: 12, border: "1.5px solid #bbf7d0" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", marginBottom: 6 }}>Marquee Brand Override</div>
                 <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.7 }}>
@@ -1689,7 +1705,7 @@ export default function App() {
           {/* ─── QUICK REFERENCE EXAMPLE ────────────────────── */}
           <Card accent="linear-gradient(90deg, #3b82f6, #60a5fa)">
             <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>7. Quick Examples</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+            <div className="grid-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
               <div style={{ background: "#eff6ff", borderRadius: 12, padding: "16px 18px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 10 }}>Scenario: Thai Operator</div>
                 <div style={{ fontSize: 12, color: "#52525b", lineHeight: 2 }}>
