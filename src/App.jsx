@@ -476,6 +476,10 @@ export default function App() {
   const [customPricing, setCustomPricing] = useState(false);
 
   const [ticketVolume, setTicketVolume] = useState("");
+  const [offlineInput, setOfflineInput] = useState("");
+  const [offlineMode, setOfflineMode] = useState("percent"); // "percent" or "number"
+  const [offlineFeeInput, setOfflineFeeInput] = useState("0.3");
+  const [waiveOffline, setWaiveOffline] = useState(true);
   const [gmv, setGmv] = useState("");
   const [revenue, setRevenue] = useState("");
   const [ticketFeeInput, setTicketFeeInput] = useState("0.3");
@@ -500,6 +504,7 @@ export default function App() {
   }, [country]);
 
   const ticketFee = waiveVariable ? 0 : (customPricing ? safe(ticketFeeInput) : DEFAULTS.ticketFee);
+  const offlineFee = waiveOffline ? 0 : (customPricing ? safe(offlineFeeInput) : DEFAULTS.ticketFee);
   const revShare = waiveVariable ? 0 : (customPricing
     ? Math.min(100, Math.max(0, safe(revShareInput)))
     : DEFAULTS.revenueShare);
@@ -508,7 +513,17 @@ export default function App() {
   const paidMonths = 12 - waiveMonths;
   const monthlyTotal = monthlyFeeRate * paidMonths;
   const fixedFee = implFee + monthlyTotal;
-  const hasAnyWaiver = waiveImpl || waiveMonths > 0 || waiveVariable;
+  const hasAnyWaiver = waiveImpl || waiveMonths > 0 || waiveVariable || waiveOffline;
+
+  // Offline ticket calculation
+  // If percent mode: Online 20, Offline 80% → Total = 20 / (1 - 0.80) = 100, Offline = 80
+  // If number mode: just use the number directly
+  const onlineVol = safe(ticketVolume);
+  const offlinePct = offlineMode === "percent" ? Math.min(99.9, Math.max(0, safe(offlineInput))) : 0;
+  const offlineVol = offlineMode === "percent"
+    ? (offlinePct > 0 && onlineVol > 0 ? Math.round(onlineVol / (1 - offlinePct / 100) - onlineVol) : 0)
+    : safe(offlineInput);
+  const totalVol = onlineVol + offlineVol;
 
   const gmvError =
     safe(gmv) > 0 && safe(revenue) > safe(gmv)
@@ -516,17 +531,18 @@ export default function App() {
       : "";
 
   const calc = useMemo(() => {
-    const vol = safe(ticketVolume);
     if (model === "ticket") {
-      const variable = vol * ticketFee;
-      return { variable, fixed: fixedFee, deal: variable + fixedFee, vol, implFee, monthlyFeeRate, paidMonths, waiveMonths, monthlyTotal };
+      const onlineVar = onlineVol * ticketFee;
+      const offlineVar = offlineVol * offlineFee;
+      const variable = onlineVar + offlineVar;
+      return { variable, onlineVar, offlineVar, fixed: fixedFee, deal: variable + fixedFee, vol: totalVol, onlineVol, offlineVol, implFee, monthlyFeeRate, paidMonths, waiveMonths, monthlyTotal };
     } else {
       const g = safe(gmv);
       const r = Math.min(safe(revenue), g);
       const variable = (g - r) * (revShare / 100);
-      return { variable, fixed: fixedFee, deal: variable + fixedFee, vol, g, r, implFee, monthlyFeeRate, paidMonths, waiveMonths, monthlyTotal };
+      return { variable, onlineVar: 0, offlineVar: 0, fixed: fixedFee, deal: variable + fixedFee, vol: totalVol, onlineVol, offlineVol, g, r, implFee, monthlyFeeRate, paidMonths, waiveMonths, monthlyTotal };
     }
-  }, [model, ticketVolume, gmv, revenue, ticketFee, revShare, fixedFee, implFee, monthlyFeeRate, paidMonths, waiveMonths, monthlyTotal]);
+  }, [model, onlineVol, offlineVol, totalVol, gmv, revenue, ticketFee, offlineFee, revShare, fixedFee, implFee, monthlyFeeRate, paidMonths, waiveMonths, monthlyTotal]);
 
   const scores = useMemo(() => {
     const vol = calc.vol;
@@ -554,12 +570,21 @@ export default function App() {
     const monthlyWaived = waiveMonths >= 12;
 
     if (model === "ticket") {
-      const vol = safe(ticketVolume);
       return {
-        varLabel: "Convenience Fee",
-        varLine: waiveVariable ? "WAIVED" : `${fmt(vol)} tickets × ${ticketFee} USD`,
-        varResult: calc.variable,
-        varWaived: waiveVariable,
+        varLines: [
+          {
+            label: "Online Convenience Fee",
+            line: waiveVariable ? "WAIVED" : `${fmt(onlineVol)} tix × ${ticketFee} USD`,
+            value: calc.onlineVar,
+            waived: waiveVariable,
+          },
+          ...(offlineVol > 0 ? [{
+            label: "Offline Convenience Fee",
+            line: waiveOffline ? "WAIVED" : `${fmt(offlineVol)} tix × ${offlineFee} USD`,
+            value: calc.offlineVar,
+            waived: waiveOffline,
+          }] : []),
+        ],
         fixedLines: [
           { label: "Implementation Fee", value: implFee, waived: waiveImpl },
           { label: monthlyLabel, value: monthlyTotal, waived: monthlyWaived, partialWaive: waiveMonths > 0 && waiveMonths < 12 },
@@ -570,10 +595,14 @@ export default function App() {
       const g = safe(gmv);
       const r = Math.min(safe(revenue), g);
       return {
-        varLabel: "Percentage Commission",
-        varLine: waiveVariable ? "WAIVED" : `(${fmt(g)} − ${fmt(r)}) × ${revShare}%`,
-        varResult: calc.variable,
-        varWaived: waiveVariable,
+        varLines: [
+          {
+            label: "Percentage Commission",
+            line: waiveVariable ? "WAIVED" : `(${fmt(g)} − ${fmt(r)}) × ${revShare}%`,
+            value: calc.variable,
+            waived: waiveVariable,
+          },
+        ],
         fixedLines: [
           { label: "Implementation Fee", value: implFee, waived: waiveImpl },
           { label: monthlyLabel, value: monthlyTotal, waived: monthlyWaived, partialWaive: waiveMonths > 0 && waiveMonths < 12 },
@@ -581,7 +610,7 @@ export default function App() {
         total: calc.deal,
       };
     }
-  }, [model, ticketVolume, gmv, revenue, ticketFee, revShare, calc, implFee, monthlyFeeRate, monthlyTotal, paidMonths, waiveMonths, waiveImpl, waiveVariable]);
+  }, [model, onlineVol, offlineVol, gmv, revenue, ticketFee, offlineFee, revShare, calc, implFee, monthlyFeeRate, monthlyTotal, paidMonths, waiveMonths, waiveImpl, waiveVariable, waiveOffline]);
 
   // Comparison (default vs custom/waived)
   const comparison = useMemo(() => {
@@ -589,8 +618,8 @@ export default function App() {
     const defFixed = DEFAULTS.implementationFee + (DEFAULTS.monthlyFee * 12);
     const custFixed = fixedFee;
     if (model === "ticket") {
-      const defVar = safe(ticketVolume) * DEFAULTS.ticketFee;
-      const custVar = safe(ticketVolume) * ticketFee;
+      const defVar = onlineVol * DEFAULTS.ticketFee + offlineVol * DEFAULTS.ticketFee;
+      const custVar = onlineVol * ticketFee + offlineVol * offlineFee;
       return {
         default: defVar + defFixed,
         custom: custVar + custFixed,
@@ -607,7 +636,7 @@ export default function App() {
         diff: (custVar + custFixed) - (defVar + defFixed),
       };
     }
-  }, [customPricing, hasAnyWaiver, model, ticketVolume, gmv, revenue, ticketFee, revShare, fixedFee]);
+  }, [customPricing, hasAnyWaiver, model, onlineVol, offlineVol, gmv, revenue, ticketFee, offlineFee, revShare, fixedFee]);
 
   return (
     <>
@@ -727,7 +756,7 @@ export default function App() {
                   value={model}
                   onChange={setModel}
                   options={[
-                    { value: "ticket", label: "Per Ticket (0.3 USD)" },
+                    { value: "ticket", label: "Per Ticket" },
                     { value: "gmv", label: "Percentage Commission" },
                   ]}
                 />
@@ -740,48 +769,131 @@ export default function App() {
               </div>
 
               {/* Inputs */}
-              <div
-                className={model === "ticket" ? "" : "grid-3col"}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    model === "ticket" ? "1fr" : "1fr 1fr 1fr",
-                  gap: 16,
-                  marginBottom: 18,
-                  alignItems: "end",
-                }}
-              >
-                {model === "ticket" ? (
+              {model === "ticket" ? (
+                <div
+                  className="grid-2col"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 16,
+                    marginBottom: 18,
+                    alignItems: "end",
+                  }}
+                >
+                  <Input
+                    label="Online Ticket Volume (past 12 months)"
+                    value={ticketVolume}
+                    onChange={setTicketVolume}
+                    placeholder="e.g. 5000"
+                  />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase" }}>
+                        {offlineMode === "percent" ? "Offline Ticket %" : "Offline Ticket Volume"}
+                      </label>
+                      <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1.5px solid #e4e4e7" }}>
+                        {["percent", "number"].map((m) => (
+                          <div
+                            key={m}
+                            onClick={() => setOfflineMode(m)}
+                            style={{
+                              padding: "3px 10px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              background: offlineMode === m ? "#f97316" : "#fafaf9",
+                              color: offlineMode === m ? "#fff" : "#71717a",
+                              transition: "all 0.2s",
+                            }}
+                          >
+                            {m === "percent" ? "%" : "#"}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={offlineInput}
+                        onChange={(e) => setOfflineInput(e.target.value)}
+                        placeholder={offlineMode === "percent" ? "e.g. 80" : "e.g. 20000"}
+                        style={{
+                          width: "100%",
+                          padding: `10px ${offlineMode === "percent" ? 44 : 14}px 10px 14px`,
+                          borderRadius: 12,
+                          border: "1.5px solid #e4e4e7",
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: "#3f3f46",
+                          background: "#fafaf9",
+                          outline: "none",
+                          transition: "border-color 0.2s",
+                        }}
+                        onFocus={(e) => (e.target.style.borderColor = "#f97316")}
+                        onBlur={(e) => (e.target.style.borderColor = "#e4e4e7")}
+                      />
+                      {offlineMode === "percent" && (
+                        <span style={{ position: "absolute", right: 14, fontSize: 13, fontWeight: 600, color: "#a1a1aa" }}>%</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="grid-3col"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr",
+                    gap: 16,
+                    marginBottom: 18,
+                    alignItems: "end",
+                  }}
+                >
+                  <Input
+                    label="GMV (USD)"
+                    value={gmv}
+                    onChange={setGmv}
+                    prefix="$"
+                  />
+                  <Input
+                    label="Revenue (USD)"
+                    value={revenue}
+                    onChange={setRevenue}
+                    prefix="$"
+                    error={gmvError}
+                  />
                   <Input
                     label="Online Ticket Volume"
                     value={ticketVolume}
                     onChange={setTicketVolume}
                     placeholder="e.g. 50000"
                   />
-                ) : (
-                  <>
-                    <Input
-                      label="GMV (USD)"
-                      value={gmv}
-                      onChange={setGmv}
-                      prefix="$"
-                    />
-                    <Input
-                      label="Revenue (USD)"
-                      value={revenue}
-                      onChange={setRevenue}
-                      prefix="$"
-                      error={gmvError}
-                    />
-                    <Input
-                      label="Online Ticket Volume"
-                      value={ticketVolume}
-                      onChange={setTicketVolume}
-                      placeholder="e.g. 50000"
-                    />
-                  </>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Ticket Volume Summary */}
+              {(offlineVol > 0 || safe(offlineInput) > 0) && (
+                <div style={{
+                  display: "flex",
+                  gap: 12,
+                  marginBottom: 18,
+                  padding: "10px 16px",
+                  background: "#f5f3ff",
+                  borderRadius: 12,
+                  border: "1px solid #e9d5ff",
+                  fontSize: 13,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}>
+                  <span style={{ color: "#7c3aed", fontWeight: 700 }}>Ticket Summary</span>
+                  <span style={{ color: "#52525b" }}>Online: <strong>{fmt(onlineVol)}</strong></span>
+                  <span style={{ color: "#d4d4d8" }}>+</span>
+                  <span style={{ color: "#52525b" }}>Offline: <strong>{fmt(offlineVol)}</strong>{offlineMode === "percent" && ` (${safe(offlineInput)}%)`}</span>
+                  <span style={{ color: "#d4d4d8" }}>=</span>
+                  <span style={{ color: "#7c3aed", fontWeight: 800, fontSize: 15 }}>Total: {fmt(totalVol)}</span>
+                </div>
+              )}
 
               {/* Custom pricing & Waivers */}
               <div
@@ -936,10 +1048,10 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Variable Fee row (Convenience Fee or Percentage Commission) */}
+                  {/* Online Convenience Fee / Commission row */}
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: customPricing ? "1fr auto" : "1fr auto",
+                    gridTemplateColumns: "1fr auto",
                     gap: 12,
                     alignItems: "end",
                     padding: "10px 14px",
@@ -952,7 +1064,7 @@ export default function App() {
                       {customPricing && !waiveVariable ? (
                         model === "ticket" ? (
                           <Input
-                            label="Convenience Fee"
+                            label="Online Convenience Fee"
                             value={ticketFeeInput}
                             onChange={setTicketFeeInput}
                             prefix="$"
@@ -969,7 +1081,7 @@ export default function App() {
                       ) : (
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
-                            {model === "ticket" ? "Convenience Fee" : "Percentage Commission"}
+                            {model === "ticket" ? "Online Convenience Fee" : "Percentage Commission"}
                           </div>
                           <div style={{ fontSize: 16, fontWeight: 700, color: waiveVariable ? "#e11d48" : "#3f3f46", textDecoration: waiveVariable ? "line-through" : "none" }}>
                             {model === "ticket" ? `${DEFAULTS.ticketFee} USD /ticket` : `${DEFAULTS.revenueShare}%`}
@@ -981,6 +1093,45 @@ export default function App() {
                       <WaiverToggle checked={waiveVariable} onChange={setWaiveVariable} />
                     </div>
                   </div>
+
+                  {/* Offline Convenience Fee row (always visible in ticket model) */}
+                  {model === "ticket" && (
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr auto",
+                      gap: 12,
+                      alignItems: "end",
+                      padding: "10px 14px",
+                      background: waiveOffline ? "#fef2f2" : "#fff",
+                      borderRadius: 10,
+                      border: `1px solid ${waiveOffline ? "#fecdd3" : "#e4e4e7"}`,
+                      transition: "all 0.2s",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        {customPricing && !waiveOffline ? (
+                          <Input
+                            label="Offline Convenience Fee"
+                            value={offlineFeeInput}
+                            onChange={setOfflineFeeInput}
+                            prefix="$"
+                            suffix="/tkt"
+                          />
+                        ) : (
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
+                              Offline Convenience Fee
+                            </div>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: waiveOffline ? "#e11d48" : "#3f3f46", textDecoration: waiveOffline ? "line-through" : "none" }}>
+                              {waiveOffline ? `${DEFAULTS.ticketFee} USD /ticket` : `${offlineFee} USD /ticket`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ paddingBottom: 2 }}>
+                        <WaiverToggle checked={waiveOffline} onChange={setWaiveOffline} />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {hasAnyWaiver && (
@@ -989,7 +1140,8 @@ export default function App() {
                     Waived: {[
                       waiveImpl && "Implementation Fee",
                       waiveMonths > 0 && (waiveMonths >= 12 ? "Monthly Fee (all 12 mo)" : `Monthly Fee (${waiveMonths} mo)`),
-                      waiveVariable && (model === "ticket" ? "Convenience Fee" : "Percentage Commission")
+                      waiveVariable && (model === "ticket" ? "Online Conv. Fee" : "Percentage Commission"),
+                      waiveOffline && "Offline Conv. Fee"
                     ].filter(Boolean).join(", ")}
                   </div>
                 )}
@@ -1009,16 +1161,18 @@ export default function App() {
                 </div>
                 {/* Fee table */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: formula.varWaived ? 0.5 : 1 }}>
-                    <span style={{ fontSize: 13, color: "#a8a29e", textDecoration: formula.varWaived ? "line-through" : "none" }}>{formula.varLabel}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, textDecoration: formula.varWaived ? "line-through" : "none" }}>
-                      {formula.varLine}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: 12 }}>
-                    <span style={{ fontSize: 12, color: "#78716c" }}></span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: formula.varWaived ? "#78716c" : "#fb923c" }}>= {formula.varWaived ? "0 USD (waived)" : fmtUSD(formula.varResult)}</span>
-                  </div>
+                  {formula.varLines.map((vl, i) => (
+                    <div key={i}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: vl.waived ? 0.5 : 1 }}>
+                        <span style={{ fontSize: 13, color: "#a8a29e", textDecoration: vl.waived ? "line-through" : "none" }}>{vl.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, textDecoration: vl.waived ? "line-through" : "none" }}>{vl.line}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: 12 }}>
+                        <span style={{ fontSize: 12, color: "#78716c" }}></span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: vl.waived ? "#78716c" : "#fb923c" }}>= {vl.waived ? "0 USD (waived)" : fmtUSD(vl.value)}</span>
+                      </div>
+                    </div>
+                  ))}
                   <div style={{ height: 1, background: "#3f3f46", margin: "4px 0" }} />
                   {formula.fixedLines.map((fl, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: fl.waived ? 0.5 : 1 }}>
@@ -1325,7 +1479,12 @@ export default function App() {
                 }}
               >
                 {[
-                  { label: model === "ticket" ? "Convenience Fee" : "Percentage Commission", value: calc.variable, waived: waiveVariable },
+                  ...(model === "ticket" ? [
+                    { label: "Online Conv. Fee", value: calc.onlineVar, waived: waiveVariable },
+                    ...(offlineVol > 0 ? [{ label: "Offline Conv. Fee", value: calc.offlineVar, waived: waiveOffline }] : []),
+                  ] : [
+                    { label: "Percentage Commission", value: calc.variable, waived: waiveVariable },
+                  ]),
                   { label: "Implementation Fee", value: calc.implFee, waived: waiveImpl },
                   {
                     label: waiveMonths > 0 && waiveMonths < 12
@@ -1448,10 +1607,11 @@ export default function App() {
               <div style={{ background: "#fafaf9", borderRadius: 12, padding: "16px 18px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", marginBottom: 8 }}>Model 1: Per Ticket</div>
                 <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8 }}>
-                  <div><strong>Variable Value</strong> = Online Ticket Volume × Convenience Fee</div>
+                  <div><strong>Online Variable</strong> = Online Ticket Volume × Online Conv. Fee</div>
+                  <div><strong>Offline Variable</strong> = Offline Ticket Volume × Offline Conv. Fee</div>
                   <div><strong>Fixed Fees</strong> = Implementation Fee + (Monthly Fee × 12)</div>
                   <div style={{ marginTop: 6, padding: "6px 10px", background: "#fff7ed", borderRadius: 8, fontWeight: 600, color: "#ea580c" }}>
-                    Deal Value = Variable Value + Fixed Fees
+                    Deal Value = Online Variable + Offline Variable + Fixed Fees
                   </div>
                 </div>
               </div>
@@ -1475,7 +1635,7 @@ export default function App() {
                 {[
                   { label: "Implementation Fee", value: "150 USD", note: "One-time" },
                   { label: "Monthly Fee", value: "60 USD/mo", note: "× 12 months = 720 USD" },
-                  { label: "Convenience Fee", value: "0.3 USD/ticket", note: "Or 3% Rev Share" },
+                  { label: "Online Conv. Fee", value: "0.3 USD/ticket", note: "Or 3% Commission" },
                 ].map((f, i) => (
                   <div key={i} style={{ background: "#fff", borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: 0.5 }}>{f.label}</div>
@@ -1484,24 +1644,55 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              <div style={{ marginTop: 8, background: "#fff", borderRadius: 8, padding: "10px 12px", border: "1px dashed #e4e4e7" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: 0.5 }}>Offline Conv. Fee</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#27272a", marginTop: 2 }}>0.3 USD/ticket <span style={{ fontSize: 12, fontWeight: 600, color: "#e11d48" }}>(default: waived)</span></div>
+                <div style={{ fontSize: 11, color: "#71717a", marginTop: 2 }}>Same rate as online, waived by default. Can be activated and adjusted separately.</div>
+              </div>
             </div>
 
             {/* Pricing Flexibility */}
             <div style={{ marginTop: 16, padding: "14px 18px", background: "#fef2f2", borderRadius: 12, border: "1px solid #fecdd3" }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#e11d48", marginBottom: 6 }}>Pricing Flexibility & Waivers</div>
               <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8 }}>
-                <div>• <strong>Custom Pricing</strong> — Toggle on to override any fee component (Implementation, Monthly, Convenience/Commission)</div>
+                <div>• <strong>Custom Pricing</strong> — Override any fee component (Implementation, Monthly, Online/Offline Conv. Fee, Commission)</div>
                 <div>• <strong>Waive Implementation Fee</strong> — Fully waive the one-time implementation fee</div>
                 <div>• <strong>Waive Monthly Fee</strong> — Select 0–12 months to waive (partial or full waiver)</div>
-                <div>• <strong>Waive Convenience Fee / Commission</strong> — Fully waive the variable fee component</div>
-                <div style={{ marginTop: 4, fontStyle: "italic", color: "#71717a" }}>Philippines: Monthly Fee is fixed at 30 USD/mo</div>
+                <div>• <strong>Waive Online Conv. Fee</strong> — Fully waive the online convenience fee</div>
+                <div>• <strong>Waive Offline Conv. Fee</strong> — Waived by default. Unwaive to charge offline tickets</div>
+                <div style={{ marginTop: 4, fontStyle: "italic", color: "#71717a" }}>Philippines: Monthly Fee default is 30 USD/mo</div>
+              </div>
+            </div>
+          </Card>
+
+          {/* ─── OFFLINE TICKET CALCULATION ────────────────── */}
+          <Card accent="#6366f1">
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>2. Offline Ticket Volume</div>
+            <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8 }}>
+              <div>Offline tickets can be entered as a <strong>number</strong> or as a <strong>percentage</strong> of total volume.</div>
+              <div style={{ marginTop: 8, padding: "10px 14px", background: "#eef2ff", borderRadius: 10 }}>
+                <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4 }}>Percentage Mode Example</div>
+                <div>Online = <strong>20</strong> tickets, Offline = <strong>80%</strong></div>
+                <div>→ Total = 20 ÷ (1 − 0.80) = <strong>100</strong> tickets</div>
+                <div>→ Offline = 100 − 20 = <strong>80</strong> tickets</div>
+              </div>
+              <div style={{ marginTop: 8, padding: "10px 14px", background: "#eef2ff", borderRadius: 10 }}>
+                <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4 }}>Number Mode Example</div>
+                <div>Online = <strong>5,000</strong>, Offline = <strong>20,000</strong></div>
+                <div>→ Total = <strong>25,000</strong> tickets</div>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <strong>Ticket Volume Score</strong> uses <strong>Total Volume (Online + Offline)</strong> for scoring.
+              </div>
+              <div style={{ marginTop: 4 }}>
+                <strong>Offline Convenience Fee</strong> is <strong>waived by default</strong> but can be activated and priced independently.
               </div>
             </div>
           </Card>
 
           {/* ─── SCORING: TICKET VOLUME ─────────────────────── */}
           <Card accent="#a855f7">
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>2. Online Ticket Volume Score</div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>3. Total Ticket Volume Score (Online + Offline)</div>
             <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Group A */}
               <div>
@@ -1556,7 +1747,7 @@ export default function App() {
 
           {/* ─── SCORING: DEAL VALUE ────────────────────────── */}
           <Card accent="#14b8a6">
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>3. Deal Value Score</div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>4. Deal Value Score</div>
             <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Group A */}
               <div>
@@ -1615,7 +1806,7 @@ export default function App() {
           {/* ─── SCORING: OPERATOR TYPE & BONUS ─────────────── */}
           <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             <Card accent="#f97316">
-              <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>4. Operator Type Score</div>
+              <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>5. Operator Type Score</div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: "2px solid #e4e4e7" }}>
@@ -1638,7 +1829,7 @@ export default function App() {
             </Card>
 
             <Card accent="#7c3aed">
-              <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>5. Top Route Bonus</div>
+              <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>6. Top Route Bonus</div>
               <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8, marginBottom: 12 }}>
                 <div style={{ padding: "8px 12px", background: "#f5f3ff", borderRadius: 8, marginBottom: 8 }}>
                   <strong style={{ color: "#7c3aed" }}>+1 point</strong> if the operator runs a route in the <strong>Top 10 Best Selling Routes on Travelier</strong>
@@ -1652,7 +1843,7 @@ export default function App() {
 
           {/* ─── FINAL SEGMENT LOGIC ────────────────────────── */}
           <Card accent="linear-gradient(90deg, #16a34a, #22c55e)">
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>6. Final Segment Calculation</div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>7. Final Segment Calculation</div>
 
             {/* Formula */}
             <div style={{ padding: "14px 18px", background: "#f0fdf4", borderRadius: 12, marginBottom: 16 }}>
@@ -1704,7 +1895,7 @@ export default function App() {
 
           {/* ─── QUICK REFERENCE EXAMPLE ────────────────────── */}
           <Card accent="linear-gradient(90deg, #3b82f6, #60a5fa)">
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>7. Quick Examples</div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>8. Quick Examples</div>
             <div className="grid-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
               <div style={{ background: "#eff6ff", borderRadius: 12, padding: "16px 18px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 10 }}>Scenario: Thai Operator</div>
