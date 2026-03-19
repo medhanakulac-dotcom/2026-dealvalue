@@ -128,106 +128,48 @@ function AnimNum({ value, prefix = "", suffix = "" }) {
   );
 }
 
-// ─── FLOATING SHAPES ─────────────────────────────────────────────
+// ─── FLOATING SHAPES (transport themed) ─────────────────────────
 function Shapes() {
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        pointerEvents: "none",
-        zIndex: 0,
-        overflow: "hidden",
-      }}
-    >
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
       {[
-        {
-          w: 320,
-          h: 320,
-          bg: "radial-gradient(circle, rgba(251,146,60,0.12) 0%, transparent 70%)",
-          top: -60,
-          right: -80,
-        },
-        {
-          w: 240,
-          h: 240,
-          bg: "radial-gradient(circle, rgba(168,85,247,0.09) 0%, transparent 70%)",
-          bottom: 80,
-          left: -60,
-        },
-        {
-          w: 180,
-          h: 180,
-          bg: "radial-gradient(circle, rgba(20,184,166,0.10) 0%, transparent 70%)",
-          top: "40%",
-          right: 40,
-        },
-        {
-          w: 140,
-          h: 140,
-          bg: "radial-gradient(circle, rgba(251,146,60,0.07) 0%, transparent 70%)",
-          bottom: -30,
-          right: "30%",
-        },
+        { w: 350, h: 350, bg: "radial-gradient(circle, rgba(251,146,60,0.10) 0%, transparent 70%)", top: -80, right: -100 },
+        { w: 260, h: 260, bg: "radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)", bottom: 60, left: -80 },
+        { w: 200, h: 200, bg: "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)", top: "45%", right: 30 },
       ].map((s, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            width: s.w,
-            height: s.h,
-            borderRadius: "50%",
-            background: s.bg,
-            top: s.top,
-            left: s.left,
-            right: s.right,
-            bottom: s.bottom,
-            animation: `seatFloat ${6 + i * 2}s ease-in-out infinite alternate`,
-          }}
-        />
+        <div key={i} style={{ position: "absolute", width: s.w, height: s.h, borderRadius: "50%", background: s.bg, top: s.top, left: s.left, right: s.right, bottom: s.bottom, animation: `seatFloat ${7 + i * 2}s ease-in-out infinite alternate` }} />
       ))}
     </div>
   );
 }
 
-// ─── CARD ────────────────────────────────────────────────────────
+// ─── TICKET CARD ────────────────────────────────────────────────
 function Card({ children, style, accent, className = "" }) {
   return (
     <div
       className={className}
       style={{
         background: "#fff",
-        borderRadius: 20,
+        borderRadius: 18,
         padding: "28px 32px",
-        boxShadow: "0 2px 24px rgba(0,0,0,0.05), 0 0.5px 2px rgba(0,0,0,0.06)",
+        boxShadow: "0 2px 20px rgba(0,0,0,0.04), 0 0.5px 2px rgba(0,0,0,0.05)",
         position: "relative",
         overflow: "hidden",
         transition: "box-shadow 0.3s, transform 0.25s",
         ...style,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow =
-          "0 8px 40px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.07)";
+        e.currentTarget.style.boxShadow = "0 8px 40px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06)";
         e.currentTarget.style.transform = "translateY(-2px)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow =
-          "0 2px 24px rgba(0,0,0,0.05), 0 0.5px 2px rgba(0,0,0,0.06)";
+        e.currentTarget.style.boxShadow = "0 2px 20px rgba(0,0,0,0.04), 0 0.5px 2px rgba(0,0,0,0.05)";
         e.currentTarget.style.transform = "translateY(0)";
       }}
     >
+      {/* Top accent stripe */}
       {accent && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 4,
-            background: accent,
-            borderRadius: "20px 20px 0 0",
-          }}
-        />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: accent }} />
       )}
       {children}
     </div>
@@ -444,23 +386,32 @@ function Input({ value, onChange, label, prefix, suffix, placeholder, error }) {
   );
 }
 
-// ─── SCORE CARD ──────────────────────────────────────────────────
+// ─── SCORE CARD (ticket stub) ────────────────────────────────────
 function ScoreCard({ label, score, max, detail, color = "#f97316" }) {
   return (
-    <Card accent={color}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
-        {label}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 16,
+        overflow: "hidden",
+        boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
+        transition: "box-shadow 0.3s, transform 0.25s",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.08)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.04)"; }}
+    >
+      <div style={{ background: color, padding: "10px 16px" }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", letterSpacing: 1, textTransform: "uppercase" }}>{label}</span>
       </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-        <span style={{ fontSize: 36, fontWeight: 800, color }}>{score}</span>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "#a1a1aa" }}>
-          / {max}
-        </span>
+      <div style={{ borderTop: `2px dashed ${color}25` }} />
+      <div style={{ padding: "16px", textAlign: "center" }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4 }}>
+          <span style={{ fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{score}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#a1a1aa" }}>/ {max}</span>
+        </div>
+        <div style={{ fontSize: 11, color: "#71717a", marginTop: 8, lineHeight: 1.4 }}>{detail}</div>
       </div>
-      <div style={{ fontSize: 12, color: "#71717a", marginTop: 6, lineHeight: 1.5 }}>
-        {detail}
-      </div>
-    </Card>
+    </div>
   );
 }
 
@@ -641,7 +592,7 @@ export default function App() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@500;700&display=swap');
         @keyframes seatFloat { 0%{transform:translateY(0) scale(1)} 100%{transform:translateY(-18px) scale(1.04)} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         * { box-sizing: border-box; margin:0; padding:0; }
@@ -664,12 +615,12 @@ export default function App() {
           padding: "0 16px 60px",
         }}
       >
-        {/* ─── HEADER ──────────────────────────────────────────── */}
+        {/* ─── HEADER (ticket counter style) ──────────────────────── */}
         <header
           style={{
             maxWidth: 1120,
             margin: "0 auto",
-            padding: "36px 0 28px",
+            padding: "28px 0 24px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -683,23 +634,26 @@ export default function App() {
               src="https://res.cloudinary.com/dkwj2iikl/image/upload/v1773201660/216db52f-36bd-4673-ade2-725c4beba594_thumb_zt4ub4.jpg"
               alt="SeatOS"
               style={{
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 borderRadius: 12,
                 objectFit: "cover",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                border: "2px solid #fff",
               }}
             />
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.5 }}>
+              <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
                 SeatOS
               </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa", letterSpacing: 1, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#a1a1aa", letterSpacing: 1.5, textTransform: "uppercase" }}>
                 BD Deal Calculator
               </div>
             </div>
           </div>
-          <Pill color="#a855f7">Business Development</Pill>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Pill color="#a855f7">Business Development</Pill>
+          </div>
         </header>
 
         {/* ─── MAIN GRID ──────────────────────────────────────── */}
@@ -1156,8 +1110,10 @@ export default function App() {
                   color: "#fafaf9",
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 14 }}>
-                  Calculation Breakdown
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase" }}>
+                    Calculation Breakdown
+                  </div>
                 </div>
                 {/* Fee table */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
@@ -1389,65 +1345,73 @@ export default function App() {
               </div>
             </Card>
 
-            {/* FINAL SEGMENT */}
-            <Card
+            {/* FINAL SEGMENT (boarding pass) */}
+            <div
               style={{
                 background: segmentBg(scores.segment),
-                textAlign: "center",
-                padding: "36px 32px",
+                borderRadius: 18,
+                overflow: "hidden",
+                boxShadow: "0 2px 20px rgba(0,0,0,0.05)",
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#71717a", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
-                Final Segment
+              <div style={{ background: segmentColor(scores.segment), padding: "10px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", letterSpacing: 1.5, textTransform: "uppercase" }}>Boarding Pass</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>SEGMENT</span>
               </div>
-              <div
-                style={{
-                  fontSize: 56,
-                  fontWeight: 800,
-                  color: segmentColor(scores.segment),
-                  lineHeight: 1,
-                  letterSpacing: -1,
-                }}
-              >
-                {scores.segment}
+              <div style={{ borderTop: `2px dashed ${segmentColor(scores.segment)}25` }} />
+              <div style={{ padding: "24px 28px 32px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#71717a", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
+                  Final Segment
+                </div>
+                <div
+                  style={{
+                    fontSize: 56,
+                    fontWeight: 800,
+                    color: segmentColor(scores.segment),
+                    lineHeight: 1,
+                    letterSpacing: -1,
+                  }}
+                >
+                  {scores.segment}
+                </div>
+                <div
+                  style={{
+                    marginTop: 14,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "#52525b",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {scores.override
+                    ? "Assigned High due to Marquee Brand override"
+                    : scores.midHighOverride
+                    ? `Upgraded to Mid-High — Operator with Medium score (${scores.total}) and deal value > 5,000 USD`
+                    : `Assigned ${scores.segment} because total score is ${scores.total}`}
+                </div>
+                <div
+                  style={{
+                    marginTop: 16,
+                    display: "inline-flex",
+                    padding: "6px 16px",
+                    borderRadius: 100,
+                    background: segmentColor(scores.segment) + "18",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: segmentColor(scores.segment),
+                  }}
+                >
+                  {scores.segment === "High"
+                    ? "≥ 7 points"
+                    : scores.segment === "Mid-High"
+                    ? "Medium + Deal > 5K"
+                    : scores.segment === "Medium"
+                    ? "4–6 points"
+                    : "< 4 points"}
+                  {scores.override && " (overridden)"}
+                </div>
               </div>
-              <div
-                style={{
-                  marginTop: 14,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "#52525b",
-                  lineHeight: 1.6,
-                }}
-              >
-                {scores.override
-                  ? "Assigned High due to Marquee Brand override"
-                  : scores.midHighOverride
-                  ? `Upgraded to Mid-High — Operator with Medium score (${scores.total}) and deal value > 5,000 USD`
-                  : `Assigned ${scores.segment} because total score is ${scores.total}`}
-              </div>
-              <div
-                style={{
-                  marginTop: 16,
-                  display: "inline-flex",
-                  padding: "6px 16px",
-                  borderRadius: 100,
-                  background: segmentColor(scores.segment) + "18",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: segmentColor(scores.segment),
-                }}
-              >
-                {scores.segment === "High"
-                  ? "≥ 7 points"
-                  : scores.segment === "Mid-High"
-                  ? "Medium + Deal > 5K"
-                  : scores.segment === "Medium"
-                  ? "4–6 points"
-                  : "< 4 points"}
-                {scores.override && " (overridden)"}
-              </div>
-            </Card>
+            </div>
 
             {/* DEAL SUMMARY */}
             <Card
