@@ -1110,10 +1110,8 @@ export default function App() {
                   color: "#fafaf9",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase" }}>
-                    Calculation Breakdown
-                  </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 14 }}>
+                  Calculation Breakdown
                 </div>
                 {/* Fee table */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
@@ -1561,6 +1559,30 @@ export default function App() {
               padding: "28px 0 0",
               background: "transparent",
             }}>
+
+          {/* ─── HOW TO USE ──────────────────────────────────── */}
+          <Card accent="linear-gradient(90deg, #3b82f6, #60a5fa)">
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>How to Use This Dashboard</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                { step: "1", title: "Select Pricing Model", desc: "Choose \"Per Ticket\" for convenience fee model or \"Percentage Commission\" for GMV-based deals." },
+                { step: "2", title: "Select Country / Region", desc: "This determines the scoring group (A or B) and default monthly fee for Philippines." },
+                { step: "3", title: "Enter Ticket Volume", desc: "Fill in Online Ticket Volume. Optionally add Offline tickets by % or number — use the toggle to switch mode." },
+                { step: "4", title: "Review Deal Value", desc: "The calculation breakdown shows all fee components automatically. Check the deal value output." },
+                { step: "5", title: "Adjust Pricing (Optional)", desc: "Toggle \"Use Custom Pricing\" to override any fee. Use Waive buttons to remove individual fees for negotiation." },
+                { step: "6", title: "Fill Segment Inputs", desc: "Select Operator or Agency, toggle Marquee Brand and Top Route Bonus (non-Thailand) on the right panel." },
+                { step: "7", title: "Read the Result", desc: "The final segment (High / Mid-High / Medium / Low) appears in the Boarding Pass card with score breakdown." },
+              ].map((s) => (
+                <div key={s.step} style={{ display: "flex", gap: 14, alignItems: "start" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "#3b82f6", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{s.step}</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#27272a" }}>{s.title}</div>
+                    <div style={{ fontSize: 12, color: "#71717a", marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
 
           {/* ─── DEAL VALUE ─────────────────────────────────── */}
           <Card accent="linear-gradient(90deg, #f97316, #fb923c)">
