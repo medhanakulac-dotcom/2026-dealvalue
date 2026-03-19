@@ -524,7 +524,7 @@ export default function App() {
       return {
         varLines: [
           {
-            label: "Online Convenience Fee",
+            label: "Travelier Online Conv. Fee",
             line: waiveVariable ? "WAIVED" : `${fmt(onlineVol)} tix × ${ticketFee} USD`,
             value: calc.onlineVar,
             waived: waiveVariable,
@@ -695,6 +695,38 @@ export default function App() {
                 </Pill>
               </div>
 
+              {/* Data source link */}
+              <a
+                href="https://lookerstudio.google.com/u/0/reporting/7b91397c-d7f0-46ce-b9f4-5a83d7ee5e84/page/p_c022vx2fsd"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 16px",
+                  borderRadius: 10,
+                  background: "#eff6ff",
+                  border: "1px solid #dbeafe",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#3b82f6",
+                  textDecoration: "none",
+                  marginBottom: 18,
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#dbeafe"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#eff6ff"; }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/>
+                </svg>
+                {model === "ticket" ? "View Travelier Ticket Volume Data (past 12 months)" : "View Travelier GMV & Revenue Data (past 12 months)"}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: "auto" }}>
+                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+              </a>
+
               {/* Model + Country row */}
               <div
                 className="grid-2col"
@@ -735,7 +767,7 @@ export default function App() {
                   }}
                 >
                   <Input
-                    label="Online Ticket Volume (past 12 months)"
+                    label="Travelier Online Ticket Volume (past 12 months)"
                     value={ticketVolume}
                     onChange={setTicketVolume}
                     placeholder="e.g. 5000"
@@ -805,20 +837,20 @@ export default function App() {
                   }}
                 >
                   <Input
-                    label="GMV (USD)"
+                    label="Travelier GMV (past 12 months, USD)"
                     value={gmv}
                     onChange={setGmv}
                     prefix="$"
                   />
                   <Input
-                    label="Revenue (USD)"
+                    label="Travelier Revenue (past 12 months, USD)"
                     value={revenue}
                     onChange={setRevenue}
                     prefix="$"
                     error={gmvError}
                   />
                   <Input
-                    label="Online Ticket Volume"
+                    label="Travelier Online Ticket Volume (past 12 months)"
                     value={ticketVolume}
                     onChange={setTicketVolume}
                     placeholder="e.g. 50000"
@@ -840,8 +872,8 @@ export default function App() {
                   alignItems: "center",
                   flexWrap: "wrap",
                 }}>
-                  <span style={{ color: "#7c3aed", fontWeight: 700 }}>Ticket Summary</span>
-                  <span style={{ color: "#52525b" }}>Online: <strong>{fmt(onlineVol)}</strong></span>
+                  <span style={{ color: "#7c3aed", fontWeight: 700 }}>Ticket Summary (12 months)</span>
+                  <span style={{ color: "#52525b" }}>Travelier Online: <strong>{fmt(onlineVol)}</strong></span>
                   <span style={{ color: "#d4d4d8" }}>+</span>
                   <span style={{ color: "#52525b" }}>Offline: <strong>{fmt(offlineVol)}</strong>{offlineMode === "percent" && ` (${safe(offlineInput)}%)`}</span>
                   <span style={{ color: "#d4d4d8" }}>=</span>
@@ -1002,7 +1034,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Online Convenience Fee / Commission row */}
+                  {/* Travelier Online Conv. Fee / Commission row */}
                   <div style={{
                     display: "grid",
                     gridTemplateColumns: "1fr auto",
@@ -1018,7 +1050,7 @@ export default function App() {
                       {customPricing && !waiveVariable ? (
                         model === "ticket" ? (
                           <Input
-                            label="Online Convenience Fee"
+                            label="Travelier Online Conv. Fee"
                             value={ticketFeeInput}
                             onChange={setTicketFeeInput}
                             prefix="$"
@@ -1035,7 +1067,7 @@ export default function App() {
                       ) : (
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
-                            {model === "ticket" ? "Online Convenience Fee" : "Percentage Commission"}
+                            {model === "ticket" ? "Travelier Online Conv. Fee" : "Percentage Commission"}
                           </div>
                           <div style={{ fontSize: 16, fontWeight: 700, color: waiveVariable ? "#e11d48" : "#3f3f46", textDecoration: waiveVariable ? "line-through" : "none" }}>
                             {model === "ticket" ? `${DEFAULTS.ticketFee} USD /ticket` : `${DEFAULTS.revenueShare}%`}
@@ -1094,7 +1126,7 @@ export default function App() {
                     Waived: {[
                       waiveImpl && "Implementation Fee",
                       waiveMonths > 0 && (waiveMonths >= 12 ? "Monthly Fee (all 12 mo)" : `Monthly Fee (${waiveMonths} mo)`),
-                      waiveVariable && (model === "ticket" ? "Online Conv. Fee" : "Percentage Commission"),
+                      waiveVariable && (model === "ticket" ? "Travelier Online Conv. Fee" : "Percentage Commission"),
                       waiveOffline && "Offline Conv. Fee"
                     ].filter(Boolean).join(", ")}
                   </div>
@@ -1442,7 +1474,7 @@ export default function App() {
               >
                 {[
                   ...(model === "ticket" ? [
-                    { label: "Online Conv. Fee", value: calc.onlineVar, waived: waiveVariable },
+                    { label: "Travelier Online Conv. Fee", value: calc.onlineVar, waived: waiveVariable },
                     ...(offlineVol > 0 ? [{ label: "Offline Conv. Fee", value: calc.offlineVar, waived: waiveOffline }] : []),
                   ] : [
                     { label: "Percentage Commission", value: calc.variable, waived: waiveVariable },
@@ -1567,8 +1599,8 @@ export default function App() {
               {[
                 { step: "1", title: "Select Pricing Model", desc: "Choose \"Per Ticket\" for convenience fee model or \"Percentage Commission\" for GMV-based deals." },
                 { step: "2", title: "Select Country / Region", desc: "This determines the scoring group (A or B) and default monthly fee for Philippines." },
-                { step: "3", title: "Enter Ticket Volume", desc: "Fill in Online Ticket Volume. Optionally add Offline tickets by % or number — use the toggle to switch mode." },
-                { step: "4", title: "Review Deal Value", desc: "The calculation breakdown shows all fee components automatically. Check the deal value output." },
+                { step: "3", title: "Enter Ticket Volume", desc: "Fill in Travelier Online Ticket Volume (past 12 months). Use the \"View Data\" link to look up the numbers. Optionally add Offline tickets by % or number." },
+                { step: "4", title: "Review Deal Value", desc: "The calculation breakdown shows all fee components automatically. All Travelier data should be based on the past 12 months." },
                 { step: "5", title: "Adjust Pricing (Optional)", desc: "Toggle \"Use Custom Pricing\" to override any fee. Use Waive buttons to remove individual fees for negotiation." },
                 { step: "6", title: "Fill Segment Inputs", desc: "Select Operator or Agency, toggle Marquee Brand and Top Route Bonus (non-Thailand) on the right panel." },
                 { step: "7", title: "Read the Result", desc: "The final segment (High / Mid-High / Medium / Low) appears in the Boarding Pass card with score breakdown." },
@@ -1593,11 +1625,11 @@ export default function App() {
               <div style={{ background: "#fafaf9", borderRadius: 12, padding: "16px 18px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", marginBottom: 8 }}>Model 1: Per Ticket</div>
                 <div style={{ fontSize: 12, color: "#52525b", lineHeight: 1.8 }}>
-                  <div><strong>Online Variable</strong> = Online Ticket Volume × Online Conv. Fee</div>
+                  <div><strong>Travelier Online Variable</strong> = Travelier Online Ticket Volume × Online Conv. Fee</div>
                   <div><strong>Offline Variable</strong> = Offline Ticket Volume × Offline Conv. Fee</div>
                   <div><strong>Fixed Fees</strong> = Implementation Fee + (Monthly Fee × 12)</div>
                   <div style={{ marginTop: 6, padding: "6px 10px", background: "#fff7ed", borderRadius: 8, fontWeight: 600, color: "#ea580c" }}>
-                    Deal Value = Online Variable + Offline Variable + Fixed Fees
+                    Deal Value = Travelier Online Variable + Offline Variable + Fixed Fees
                   </div>
                 </div>
               </div>
@@ -1621,7 +1653,7 @@ export default function App() {
                 {[
                   { label: "Implementation Fee", value: "150 USD", note: "One-time" },
                   { label: "Monthly Fee", value: "60 USD/mo", note: "× 12 months = 720 USD" },
-                  { label: "Online Conv. Fee", value: "0.3 USD/ticket", note: "Or 3% Commission" },
+                  { label: "Travelier Online Conv. Fee", value: "0.3 USD/ticket", note: "Or 3% Commission" },
                 ].map((f, i) => (
                   <div key={i} style={{ background: "#fff", borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: 0.5 }}>{f.label}</div>
@@ -1658,17 +1690,17 @@ export default function App() {
               <div>Offline tickets can be entered as a <strong>number</strong> or as a <strong>percentage</strong> of total volume.</div>
               <div style={{ marginTop: 8, padding: "10px 14px", background: "#eef2ff", borderRadius: 10 }}>
                 <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4 }}>Percentage Mode Example</div>
-                <div>Online = <strong>20</strong> tickets, Offline = <strong>80%</strong></div>
+                <div>Travelier Online = <strong>20</strong> tickets, Offline = <strong>80%</strong></div>
                 <div>→ Total = 20 ÷ (1 − 0.80) = <strong>100</strong> tickets</div>
                 <div>→ Offline = 100 − 20 = <strong>80</strong> tickets</div>
               </div>
               <div style={{ marginTop: 8, padding: "10px 14px", background: "#eef2ff", borderRadius: 10 }}>
                 <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4 }}>Number Mode Example</div>
-                <div>Online = <strong>5,000</strong>, Offline = <strong>20,000</strong></div>
+                <div>Travelier Online = <strong>5,000</strong>, Offline = <strong>20,000</strong></div>
                 <div>→ Total = <strong>25,000</strong> tickets</div>
               </div>
               <div style={{ marginTop: 8 }}>
-                <strong>Ticket Volume Score</strong> uses <strong>Total Volume (Online + Offline)</strong> for scoring.
+                <strong>Ticket Volume Score</strong> uses <strong>Total Volume (Travelier Online + Offline)</strong> for scoring. Use Travelier data from the past 12 months.
               </div>
               <div style={{ marginTop: 4 }}>
                 <strong>Offline Convenience Fee</strong> is <strong>waived by default</strong> but can be activated and priced independently.
