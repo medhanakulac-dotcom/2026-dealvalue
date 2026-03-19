@@ -400,7 +400,7 @@ function ScoreCard({ label, score, max, detail, color = "#f97316" }) {
       onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.08)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.04)"; }}
     >
-      <div style={{ background: color, padding: "10px 16px" }}>
+      <div style={{ background: color, padding: "10px 16px", textAlign: "center" }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", letterSpacing: 1, textTransform: "uppercase" }}>{label}</span>
       </div>
       <div style={{ borderTop: `2px dashed ${color}25` }} />
@@ -703,28 +703,38 @@ export default function App() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
-                  padding: "10px 16px",
-                  borderRadius: 10,
-                  background: "#eff6ff",
-                  border: "1px solid #dbeafe",
+                  gap: 12,
+                  padding: "14px 20px",
+                  borderRadius: 14,
+                  background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
+                  border: "1px solid #bfdbfe",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#3b82f6",
+                  color: "#1d4ed8",
                   textDecoration: "none",
                   marginBottom: 18,
-                  transition: "all 0.2s",
+                  transition: "all 0.25s",
+                  boxShadow: "0 2px 8px rgba(59,130,246,0.08)",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#dbeafe"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#eff6ff"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(59,130,246,0.15)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(59,130,246,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/>
-                </svg>
-                {model === "ticket" ? "View Travelier Ticket Volume Data (past 12 months)" : "View Travelier GMV & Revenue Data (past 12 months)"}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: "auto" }}>
-                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(59,130,246,0.12)", flexShrink: 0 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/>
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1d4ed8" }}>
+                    {model === "ticket" ? "View Ticket Volume Data" : "View GMV & Revenue Data"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#60a5fa", marginTop: 1 }}>Looker Studio — past 12 months</div>
+                </div>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </div>
               </a>
 
               {/* Model + Country row */}
@@ -756,23 +766,20 @@ export default function App() {
 
               {/* Inputs */}
               {model === "ticket" ? (
-                <div
-                  className="grid-2col"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 16,
-                    marginBottom: 18,
-                    alignItems: "end",
-                  }}
-                >
-                  <Input
-                    label="Travelier Online Ticket Volume (past 12 months)"
-                    value={ticketVolume}
-                    onChange={setTicketVolume}
-                    placeholder="e.g. 5000"
-                  />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ marginBottom: 18 }}>
+                  {/* Labels row */}
+                  <div
+                    className="grid-2col"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase" }}>
+                      Online Ticket Volume (past 12 months)
+                    </label>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <label style={{ fontSize: 11, fontWeight: 700, color: "#a1a1aa", letterSpacing: 0.8, textTransform: "uppercase" }}>
                         {offlineMode === "percent" ? "Offline Ticket %" : "Offline Ticket Volume"}
@@ -797,6 +804,37 @@ export default function App() {
                         ))}
                       </div>
                     </div>
+                  </div>
+                  {/* Inputs row */}
+                  <div
+                    className="grid-2col"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                    }}
+                  >
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={ticketVolume}
+                      onChange={(e) => setTicketVolume(e.target.value)}
+                      placeholder="e.g. 5000"
+                      style={{
+                        width: "100%",
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        border: "1.5px solid #e4e4e7",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "#3f3f46",
+                        background: "#fafaf9",
+                        outline: "none",
+                        transition: "border-color 0.2s",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#f97316")}
+                      onBlur={(e) => (e.target.style.borderColor = "#e4e4e7")}
+                    />
                     <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                       <input
                         type="text"
@@ -903,9 +941,9 @@ export default function App() {
                   {/* Implementation Fee row */}
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: customPricing ? "1fr auto" : "1fr auto",
+                    gridTemplateColumns: "1fr auto",
                     gap: 12,
-                    alignItems: "end",
+                    alignItems: "center",
                     padding: "10px 14px",
                     background: waiveImpl ? "#fef2f2" : "#fff",
                     borderRadius: 10,
@@ -930,7 +968,7 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                    <div style={{ paddingBottom: 2 }}>
+                    <div>
                       <WaiverToggle checked={waiveImpl} onChange={setWaiveImpl} />
                     </div>
                   </div>
@@ -1039,7 +1077,7 @@ export default function App() {
                     display: "grid",
                     gridTemplateColumns: "1fr auto",
                     gap: 12,
-                    alignItems: "end",
+                    alignItems: "center",
                     padding: "10px 14px",
                     background: waiveVariable ? "#fef2f2" : "#fff",
                     borderRadius: 10,
@@ -1075,7 +1113,7 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                    <div style={{ paddingBottom: 2 }}>
+                    <div>
                       <WaiverToggle checked={waiveVariable} onChange={setWaiveVariable} />
                     </div>
                   </div>
@@ -1086,7 +1124,7 @@ export default function App() {
                       display: "grid",
                       gridTemplateColumns: "1fr auto",
                       gap: 12,
-                      alignItems: "end",
+                      alignItems: "center",
                       padding: "10px 14px",
                       background: waiveOffline ? "#fef2f2" : "#fff",
                       borderRadius: 10,
@@ -1113,7 +1151,7 @@ export default function App() {
                           </div>
                         )}
                       </div>
-                      <div style={{ paddingBottom: 2 }}>
+                      <div>
                         <WaiverToggle checked={waiveOffline} onChange={setWaiveOffline} />
                       </div>
                     </div>
